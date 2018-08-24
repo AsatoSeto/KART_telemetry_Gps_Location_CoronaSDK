@@ -10,21 +10,38 @@ local time = display.newText( "-", 170, 200, native.systemFont, 40 )
 local filename = display.newText("-" , display.contentCenterX,400,native.systemFont, 40 )
 local hour1 = display.newText( "-", 250, 250, native.systemFont, 40 )
 
-local t= os.date('*t')																					--переменные времени для имени файла
-local ti = tostring(t.hour) .. tostring(t.min) ..tostring(t.sec).. tostring(t.month) .. tostring(t.day) 
-local fileName = ti .. "GPSTrackData.csv"
+--local t= os.date('*t')																					--переменные времени для имени файла
+--local ti = tostring(t.hour) .. tostring(t.min) ..tostring(t.sec).. tostring(t.month) .. tostring(t.day) 
+--local fileName = ti .. "GPSTrackData.csv"
+
+local enableWrite = false
+local t = ''
+local ti = ''
+local fileName=''
 
 flashCircle = display.newCircle(display.contentCenterX, display.contentCenterY, 50)   --генерация круга
 
 local widget = require( "widget" ) --объявление виджета
+
+
+
+local function date()
+	if (enableWrite) then
+		t = os.date('*t')
+    	ti = tostring(t.hour) .. tostring(t.min) .. tostring(t.sec).. tostring(t.month) .. tostring(t.day) 
+		fileName = ti .. "GPSTrackData.csv"
+		file_write(fileName)
+		enableWrite=false
+	else
+		file_write(fileName)
+	end
+end
  
 local function handleButtonEvent( event ) -- обработчик кнопки 1
     if ( "ended" == event.phase ) then
-		t= os.date('*t')
-        ti = tostring(t.hour) .. tostring(t.min) .. tostring(t.sec).. tostring(t.month) .. tostring(t.day) 
-		fileName = ti .. "GPSTrackData.csv"
-		filename.text = fileName
-		file_write()
+		enableWrite = true
+		date()
+		
     end
 end
  
@@ -102,12 +119,13 @@ end
 
 	atom_sec = fractionalPart*60
 	hour1.text = tostring(atom_hour) ..":".. tostring(atom_min) .. ":" .. tostring(atom_sec)
-	timer.performWithDelay( 100, atom_time )
+	timer.performWithDelay( 500, atom_time )
 end
 
-function file_write()														--функция записи в файл
+function file_write(fileName)														--функция записи в файл
 	 	local path = system.pathForFile(fileName,system.DocumentsDirectory)
 		local file, errorString = io.open(path,"a")
+		filename.text = fileName
 		if not file then
 			print ("File error:" .. errorString)
 		else
@@ -122,7 +140,7 @@ function file_write()														--функция записи в файл
 			file:write("\n")
 			io.close(file)
 		 	file = nil
-		 	write_time = timer.performWithDelay( 1000, file_write )
+		 	write_time = timer.performWithDelay( 1000, date )
 		end      	        	
 end
 
